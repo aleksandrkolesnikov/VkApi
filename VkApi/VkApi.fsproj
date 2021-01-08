@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,7 +18,6 @@
   <ItemGroup>
     <Compile Include="Error.fs" />
     <Compile Include="Parser.fs" />
-    <Compile Include="RequestBuilder.fs" />
     <Compile Include="VkException.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="UploadServer.fs" />

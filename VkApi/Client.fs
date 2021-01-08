@@ -1,6 +1,7 @@
 ﻿namespace VkApi
 
 
+open System.IO
 open FSharp.Control.Tasks.V2
 open VkApi.Wrappers
 
@@ -11,14 +12,15 @@ type Client (login, password) =
     let authInfo =
             let clientId = 3697615
             let clientSecret = "AlVXZFMUqyrnABp8ncuU"
-            Request.perform<AuthInfo> <| Get $"https://oauth.vk.com/token?grant_type=password&client_id={clientId}&client_secret={clientSecret}&username=%s{login}&password=%s{password}"
+            Get $"https://oauth.vk.com/token?grant_type=password&client_id={clientId}&client_secret={clientSecret}&username=%s{login}&password=%s{password}"
+            |> Request.perform<AuthInfo>
 
     member _.GetDocuments () =
         task {
             let! info = authInfo
-            let! response = request {
-                                url $"https://api.vk.com/method/docs.get?access_token={info.AccessToken}&v={apiVersion}"
-                            } |> Request.perform<Response<Items<Document>>>
+            let! response =
+                Get $"https://api.vk.com/method/docs.get?access_token={info.AccessToken}&v={apiVersion}"
+                |> Request.perform<Response<Items<Document>>>
 
             return response.Response.Items
         }
@@ -26,28 +28,30 @@ type Client (login, password) =
     member _.RemoveDocument (doc: Document) =
         task {
             let! info = authInfo
-            let! response = request {
-                                url $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id=13&v={apiVersion}"
-                            } |> Request.perform<Response<int>>
+            let! response =
+                Get $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id=13&v={apiVersion}"
+                |> Request.perform<Response<int>>
 
             ()
         }
 
-    member _.UploadDocument path =
+    member self.UploadDocument (stream: Stream, name) =
         task {
+            let buffer = Array.zeroCreate<byte> (stream.Length |> int)
+            let! _ = stream.ReadAsync (buffer, 0, buffer.Length)
+
             let! info = authInfo
-            let! response = request {
-                                url $"https://api.vk.com/method/docs.getUploadServer?access_token={info.AccessToken}&v={apiVersion}"
-                            } |> Request.perform<Response<UploadServer>>
+            let! response =
+                Get $"https://api.vk.com/method/docs.getUploadServer?access_token={info.AccessToken}&v={apiVersion}"
+                |> Request.perform<Response<UploadServer>>
 
-            let! response = request {
-                                url response.Response.Url
-                                filename path
-                            } |> Request.perform<UploadedFileInfo>
+            let! response =
+                Post (response.Response.Url, name, buffer)
+                |> Request.perform<UploadedFileInfo>
 
-            let! response = request {
-                                url $"https://api.vk.com/method/docs.save?access_token={info.AccessToken}&file={response.Info}&title={response.Title}&tags=&v={apiVersion}"
-                            } |> Request.perform<Response<Doc<Document>>>
+            let! response =
+                Get $"https://api.vk.com/method/docs.save?access_token={info.AccessToken}&file={response.Info}&title={response.Title}&tags=&v={apiVersion}"
+                |> Request.perform<Response<Doc<Document>>>
 
             return response.Response.Document
         }
