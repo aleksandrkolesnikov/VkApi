@@ -1,9 +1,11 @@
 ﻿namespace VkApi
 
+
 open Newtonsoft.Json
 open System
 
 
+[<CustomEquality;NoComparison>]
 type Document =
     struct
         val Id: uint64
@@ -26,23 +28,12 @@ type Document =
             }
     end
 
-(*type Document = {
-    [<JsonProperty "id">]
-    Id: uint64
+    interface IEquatable<Document> with
+        member self.Equals document = self.Title.Equals <| document.Title
 
-    [<JsonProperty "owner_id">]
-    OwnerId: uint64
+    override self.Equals obj =
+        match obj with
+        | :? IEquatable<Document> as doc -> doc.Equals <| self
+        | _ -> false
 
-    [<JsonProperty "title">]
-    Title: string
-
-    [<JsonProperty "size">]
-    Size: uint64
-
-    [<JsonProperty "date">]
-    UnixDate: uint64
-}
-with
-    member self.Date =
-        let unixEpoch = DateTime (1970, 1, 1, 0, 0, 0, 0)
-        self.UnixDate |> float |> unixEpoch.AddSeconds*)
+    override self.GetHashCode () = self.Title.GetHashCode ()
