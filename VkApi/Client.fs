@@ -1,6 +1,5 @@
 ﻿namespace VkApi
 
-
 open System.IO
 open FSharp.Control.Tasks.V2
 open VkApi.Wrappers
@@ -35,7 +34,7 @@ type Client (login, password) =
             ()
         }
 
-    member self.UploadDocument (stream: Stream, name) =
+    member _.UploadDocument (stream: Stream, name) =
         task {
             let buffer = Array.zeroCreate<byte> (stream.Length |> int)
             let! _ = stream.ReadAsync (buffer, 0, buffer.Length)
@@ -52,6 +51,7 @@ type Client (login, password) =
             let! response =
                 Get $"https://api.vk.com/method/docs.save?access_token={info.AccessToken}&file={response.Info}&title={response.Title}&tags=&v={apiVersion}"
                 |> Request.perform<Response<Doc<Document>>>
+
 
             return response.Response.Document
         }

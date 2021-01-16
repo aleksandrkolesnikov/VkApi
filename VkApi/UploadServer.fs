@@ -3,6 +3,7 @@
 open Newtonsoft.Json
 
 
+[<NoEquality; NoComparison>]
 type internal UploadServer =
     struct
         val Url: string

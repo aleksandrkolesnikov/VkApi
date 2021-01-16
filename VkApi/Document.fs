@@ -1,11 +1,10 @@
 ﻿namespace VkApi
 
-
 open Newtonsoft.Json
 open System
 
 
-[<CustomEquality;NoComparison>]
+[<CustomEquality; NoComparison>]
 type Document =
     struct
         val Id: uint64

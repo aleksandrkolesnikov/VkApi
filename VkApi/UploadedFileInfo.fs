@@ -1,8 +1,10 @@
 ﻿namespace VkApi
 
+open System
 open Newtonsoft.Json
 
 
+[<NoEquality; NoComparison>]
 type internal UploadedFileInfo =
     struct
         val Info: string

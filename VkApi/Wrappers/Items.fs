@@ -1,13 +1,12 @@
 ﻿namespace VkApi.Wrappers
 
 open Newtonsoft.Json
-open System.Collections.Generic
 
 
-[<NoComparison>]
+[<NoEquality; NoComparison>]
 type internal Items<'T> =
     struct
-        val Items: IEnumerable<'T>
+        val Items: seq<'T>
 
         [<JsonConstructor>]
         new items = { Items = items }
