@@ -32,8 +32,18 @@ module internal Request =
     let private performPost url filename (source: byte array) =
         let boundary = Guid.NewGuid ()
         let body =
+            let (|FileExtension|) filename = Path.GetExtension filename
+            let contentType = match filename with
+                                | FileExtension ".jpg"
+                                | FileExtension ".jpeg" -> "image/jpeg"
+                                | FileExtension ".png" -> "image/png"
+                                | FileExtension ".gif" -> "image/gif"
+                                | FileExtension ".pdf" -> "application/pdf"
+                                | FileExtension ".zip" -> "application/zip"
+                                | _ -> "application/octet-stream"
+
             let header =
-                $"--{boundary}\r\nContent-Disposition: form-data; name=file; filename=\"{filename}\"\r\nContent-Type:application/octet-stream\r\n\r\n"
+                $"--{boundary}\r\nContent-Disposition: form-data; name=file; filename=\"{filename}\"\r\nContent-Type:{contentType}\r\n\r\n"
                 |> Encoding.UTF8.GetBytes
             let footer = $"\r\n--{boundary}--\r\n" |> Encoding.UTF8.GetBytes
 
@@ -68,4 +78,3 @@ module internal Request =
                     | Error error -> raise (new VkException (error.Error))
                     | Ok response -> response
         }
-
