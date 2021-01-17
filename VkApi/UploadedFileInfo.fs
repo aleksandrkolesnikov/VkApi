@@ -1,6 +1,5 @@
 ﻿namespace VkApi
 
-open System
 open Newtonsoft.Json
 
 

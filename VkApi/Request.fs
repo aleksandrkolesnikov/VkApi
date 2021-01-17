@@ -17,19 +17,32 @@ module internal Request =
 
 
     type HttpWebRequest with
-        member self.AsyncGetResponse () =
+        member self.GetResponseAsync<'Response> () =
             task {
                 use! response = self.GetResponseAsync ()
                 use stream = response.GetResponseStream ()
                 use reader = new StreamReader (stream)
-                return! reader.ReadToEndAsync ()
+                let! text = reader.ReadToEndAsync ()
+
+                return match text |> Parser.parse<'Response> with
+                        | Ok response -> response
+                        | Result.Error error ->
+                            match error.Error.Code with
+                            | 6 -> raise (TooManyRequestsPerSecondException (error.Error))
+                            | _ -> raise (Exception ("Something went wrong"))
             }
 
-    let private performGet (url: string) =
-        let request = WebRequest.CreateHttp url
-        request.AsyncGetResponse ()
+        member self.WriteContentAsync content =
+            task {
+                use! stream = self.GetRequestStreamAsync ()
+                do! stream.WriteAsync (content, 0, content.Length)
+            }
 
-    let private performPost url filename (source: byte array) =
+    let private performGet<'Response> (url: string) =
+        let request = WebRequest.CreateHttp url
+        request.GetResponseAsync<'Response> ()
+
+    let private performPost<'Response> (url: string) filename (source: byte array) =
         let boundary = Guid.NewGuid ()
         let body =
             let (|FileExtension|) filename = Path.GetExtension filename
@@ -58,23 +71,20 @@ module internal Request =
             }
 
         task {
-            let request = url |> string |> WebRequest.CreateHttp
-            let! body = body
+            let request = url |> WebRequest.CreateHttp
             request.Method <- "POST"
             request.ContentType <- $"multipart/form-data; boundary={boundary}"
-            use stream = request.GetRequestStream ()
-            do! stream.WriteAsync (body, 0, body.Length)
+            let! body = body
+            do! request.WriteContentAsync body
 
-            return! request.AsyncGetResponse ()
+            return! request.GetResponseAsync<'Response> ()
         }
 
     let perform<'Response> request =
         task {
             let! response = match request with
-                            | Get url -> url |> performGet
-                            | Post (url, filename, source) -> performPost url filename source
+                            | Get url -> url |> performGet<'Response>
+                            | Post (url, filename, source) -> performPost<'Response> url filename source
 
-            return match response |> Parser.parse<'Response> with
-                    | Error error -> raise (new VkException (error.Error))
-                    | Ok response -> response
+            return response
         }
