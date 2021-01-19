@@ -27,8 +27,8 @@ type Client (login, password) =
     member _.RemoveDocument (doc: Document) =
         task {
             let! info = authInfo
-            let! response =
-                Get $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id=13&v={apiVersion}"
+            let! _ =
+                Get $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id={doc.Id}&v={apiVersion}"
                 |> Request.perform<Response<int>>
 
             ()

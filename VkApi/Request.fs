@@ -29,6 +29,7 @@ module internal Request =
                         | Result.Error error ->
                             match error.Error.Code with
                             | 6 -> raise (TooManyRequestsPerSecondException (error.Error))
+                            | 1151 -> raise (AccessDeniedException (error.Error))       // this code does not mention in https://vk.com/dev/errors
                             | _ -> raise (Exception ("Something went wrong"))
             }
 

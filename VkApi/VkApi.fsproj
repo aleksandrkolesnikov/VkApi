@@ -19,6 +19,7 @@
     <Compile Include="Error.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="VkException.fs" />
+    <Compile Include="AccessDeniedException.fs" />
     <Compile Include="TooManyRequestsPerSecondException.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="UploadServer.fs" />
