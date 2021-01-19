@@ -28,9 +28,9 @@ module internal Request =
                         | Ok response -> response
                         | Result.Error error ->
                             match error.Error.Code with
-                            | 6 -> raise (TooManyRequestsPerSecondException (error.Error))
-                            | 1151 -> raise (AccessDeniedException (error.Error))       // this code does not mention in https://vk.com/dev/errors
-                            | _ -> raise (Exception ("Something went wrong"))
+                            | 6 -> raise (new TooManyRequestsPerSecondException (error.Error))
+                            | 1151 -> raise (new AccessDeniedException (error.Error))       // this code does not mention in https://vk.com/dev/errors
+                            | _ -> raise (new Exception ("Something went wrong"))
             }
 
         member self.WriteContentAsync content =

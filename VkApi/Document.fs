@@ -28,11 +28,11 @@ type Document =
     end
 
     interface IEquatable<Document> with
-        member self.Equals document = self.Title.Equals <| document.Title
+        member self.Equals document = self.Id = document.Id
 
     override self.Equals obj =
         match obj with
         | :? IEquatable<Document> as doc -> doc.Equals <| self
         | _ -> false
 
-    override self.GetHashCode () = self.Title.GetHashCode ()
+    override self.GetHashCode () = int self.Id
