@@ -61,21 +61,12 @@ module internal Request =
                 |> Encoding.UTF8.GetBytes
             let footer = $"\r\n--{boundary}--\r\n" |> Encoding.UTF8.GetBytes
 
-            task {
-                let buffer = Array.zeroCreate<byte> (header.Length + source.Length + footer.Length)
-                let stream = new MemoryStream (buffer)
-                do! stream.WriteAsync (header, 0, header.Length)
-                do! stream.WriteAsync (source, 0, source.Length)
-                do! stream.WriteAsync (footer, 0, footer.Length)
-
-                return buffer
-            }
+            seq { header; source; footer } |> Array.concat
 
         task {
             let request = url |> WebRequest.CreateHttp
             request.Method <- "POST"
             request.ContentType <- $"multipart/form-data; boundary={boundary}"
-            let! body = body
             do! request.WriteContentAsync body
 
             return! request.GetResponseAsync<'Response> ()
