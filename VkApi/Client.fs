@@ -38,10 +38,6 @@ type Client (login, password) =
 
     member _.UploadDocument (stream: Stream, name) =
         task {
-            // TODO: Can not use stream.Length, because some stream (CryptoStream) does not support positioning
-            //let buffer = Array.zeroCreate<byte> (stream.Length |> int)
-            //let! _ = stream.ReadAsync (buffer, 0, buffer.Length)
-
             let! info = authInfo
             let! response =
                 Get $"https://api.vk.com/method/docs.getUploadServer?access_token={info.AccessToken}&v={apiVersion}"

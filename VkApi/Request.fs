@@ -46,7 +46,7 @@ module internal Request =
     let private performPost<'Response> (url: string) filename (source: byte array) =
         let boundary = Guid.NewGuid ()
         let body =
-            let (|FileExtension|) filename = Path.GetExtension filename
+            let (|FileExtension|) (filename: string) = Path.GetExtension filename
             let contentType = match filename with
                                 | FileExtension ".jpg"
                                 | FileExtension ".jpeg" -> "image/jpeg"
@@ -54,6 +54,7 @@ module internal Request =
                                 | FileExtension ".gif" -> "image/gif"
                                 | FileExtension ".pdf" -> "application/pdf"
                                 | FileExtension ".zip" -> "application/zip"
+                                | FileExtension ".txt" -> "text/plain"
                                 | _ -> "application/octet-stream"
 
             let header =

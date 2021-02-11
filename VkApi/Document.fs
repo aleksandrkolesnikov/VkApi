@@ -12,9 +12,10 @@ type Document =
         val Title: string
         val Size: uint64
         val Date: DateTime
+        val Url: string
 
         [<JsonConstructor>]
-        internal new (id, owner_id, title, size, date) =
+        internal new (id, owner_id, title, size, date, url) =
             let toDateTime date =
                 let unixEpoch = DateTime (1970, 1, 1, 0, 0, 0, 0)
                 date |> unixEpoch.AddSeconds
@@ -24,6 +25,7 @@ type Document =
                 Title = title
                 Size = size
                 Date = date |> float |> toDateTime
+                Url = url
             }
     end
 
@@ -35,4 +37,4 @@ type Document =
         | :? IEquatable<Document> as doc -> doc.Equals <| self
         | _ -> false
 
-    override self.GetHashCode () = int self.Id
+    override self.GetHashCode () = self.Id ^^^ self.OwnerId |> int
