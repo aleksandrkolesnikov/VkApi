@@ -1,5 +1,7 @@
 ﻿namespace VkApi
 
+open System
+
 open System.IO
 open FSharp.Control.Tasks.V2
 open VkApi.Wrappers
@@ -36,16 +38,19 @@ type Client (login, password) =
 
     member _.UploadDocument (stream: Stream, name) =
         task {
-            let buffer = Array.zeroCreate<byte> (stream.Length |> int)
-            let! _ = stream.ReadAsync (buffer, 0, buffer.Length)
+            // TODO: Can not use stream.Length, because some stream (CryptoStream) does not support positioning
+            //let buffer = Array.zeroCreate<byte> (stream.Length |> int)
+            //let! _ = stream.ReadAsync (buffer, 0, buffer.Length)
 
             let! info = authInfo
             let! response =
                 Get $"https://api.vk.com/method/docs.getUploadServer?access_token={info.AccessToken}&v={apiVersion}"
                 |> Request.perform<Response<UploadServer>>
 
+            use memory = new MemoryStream ()
+            do! stream.CopyToAsync memory
             let! response =
-                Post (response.Response.Url, name, buffer)
+                Post (response.Response.Url, name, memory.ToArray ())
                 |> Request.perform<UploadedFileInfo>
 
             let! response =
