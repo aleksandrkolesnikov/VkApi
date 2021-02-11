@@ -14,47 +14,63 @@ namespace VkApiTests
         public async Task GetDocumentsTest()
         {
             var docs = await VkClient.Get.GetDocuments();
-
+            
             Assert.NotEmpty(docs);
         }
 
-        [Fact(DisplayName = "Upload Document")]
-        public async Task UploadDocumentTest()
+        [Fact(DisplayName = "Upload Document From Buffer")]
+        public async Task UploadFromBufferTest()
         {
-            var path = "../../../TestData/Program.fs";
-            var name = ":MyTestFolder:TestData:MyCustomFileName.txt";
-            using var stream = File.OpenRead(path);
-            var doc = await VkClient.Get.UploadDocument(stream, name);
+            byte[] buffer = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            var stream = new MemoryStream(buffer);
+            var doc = await VkClient.Get.UploadDocument(stream, "FromBuffer.dat");
 
-            Assert.Equal(name, doc.Title);
+            Assert.Equal("FromBuffer.dat", doc.Title);
+            Assert.Equal((ulong)buffer.Length, doc.Size);
         }
 
-        [Fact(DisplayName = "Upload Large Document")]
-        public async Task UploadLargeDocumentTest()
+        [Fact(DisplayName = "Upload Document From File")]
+        public async Task UploadFromFileTest()
         {
-            var path = "../../../TestData/LargeFile.7z";
-            var name = ":MyTestFolder:TestData:MyLargeFile.7z";
+            var path = "../../../TestData/CSR057069_0_3376112712.xlsx";
+            var name = "MyTable.xlsx";
             using var stream = File.OpenRead(path);
             var doc = await VkClient.Get.UploadDocument(stream, name);
 
             Assert.Equal(name, doc.Title);
+            Assert.Equal((ulong)stream.Length, doc.Size);
+        }
+
+        [Fact(DisplayName = "Upload Document From Large File")]
+        public async Task UploadFromLargeFileTest()
+        {
+            var path = "../../../TestData/LargeFile.7z";
+            var name = "MyLargeFile.7z";
+            using var stream = File.OpenRead(path);
+            var doc = await VkClient.Get.UploadDocument(stream, name);
+
+            Assert.Equal(name, doc.Title);
+            Assert.Equal((ulong)stream.Length, doc.Size);
         }
 
         [Fact(DisplayName = "Remove Document")]
         public async Task RemoveDocumentTest()
         {
-            /*var client = VkClient.Get;
-            var doc = await client.UploadDocument("Program.fs");
+            var path = "../../../TestData/Program.fs";
+            var name = "FileForDelete.txt";
+            using var stream = File.OpenRead(path);
+            var client = VkClient.Get;
+            var doc = await client.UploadDocument(stream, name);
             await client.RemoveDocument(doc);
             var docs = await client.GetDocuments();
 
-            Assert.DoesNotContain(doc, docs);*/
+            Assert.DoesNotContain(doc, docs);
         }
 
-        [Fact(DisplayName = "Make Many Requests And Failed")]
+        [Fact(DisplayName = "Failed With Too Many Requests Per Second")]
         public void MakeManyRequestTest()
         {
-            void TestCode()
+            static void TestCode()
             {
                 var tasks = new Task<IEnumerable<Document>>[30];
                 var client = VkClient.Get;
@@ -68,7 +84,7 @@ namespace VkApiTests
             }
 
             var exception = Assert.Throws<AggregateException>(TestCode);
-            Assert.Equal(typeof(VkException), exception.InnerException.GetType());
+            Assert.Equal(typeof(TooManyRequestsPerSecondException), exception.InnerException.GetType());
         }
     }
 }
