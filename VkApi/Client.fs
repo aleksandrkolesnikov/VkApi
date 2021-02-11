@@ -36,17 +36,23 @@ type Client (login, password) =
             ()
         }
 
-    member _.UploadDocument (stream: Stream, name) =
+    member self.UploadDocument (stream: Stream, name) =
+        task {
+            use memory = new MemoryStream ()
+            do! stream.CopyToAsync memory
+
+            return! self.UploadDocument (memory.ToArray (), name)
+        }
+
+    member _.UploadDocument(source, name) =
         task {
             let! info = authInfo
             let! response =
                 Get $"https://api.vk.com/method/docs.getUploadServer?access_token={info.AccessToken}&v={apiVersion}"
                 |> Request.perform<Response<UploadServer>>
 
-            use memory = new MemoryStream ()
-            do! stream.CopyToAsync memory
             let! response =
-                Post (response.Response.Url, name, memory.ToArray ())
+                Post (response.Response.Url, name, source)
                 |> Request.perform<UploadedFileInfo>
 
             let! response =
@@ -55,4 +61,4 @@ type Client (login, password) =
 
 
             return response.Response.Document
-        }
+        }        

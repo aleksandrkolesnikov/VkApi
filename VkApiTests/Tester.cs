@@ -18,14 +18,26 @@ namespace VkApiTests
             Assert.NotEmpty(docs);
         }
 
+        [Fact(DisplayName = "Upload Document From Stream")]
+        public async Task UploadFromMemoryStreamTest()
+        {
+            byte[] buffer = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            using var stream = new MemoryStream(buffer);
+            var actualName = "Stream.dat";
+            var doc = await VkClient.Get.UploadDocument(stream, actualName);
+
+            Assert.Equal(actualName, doc.Title);
+            Assert.Equal((ulong)buffer.Length, doc.Size);
+        }
+
         [Fact(DisplayName = "Upload Document From Buffer")]
         public async Task UploadFromBufferTest()
         {
             byte[] buffer = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            var stream = new MemoryStream(buffer);
-            var doc = await VkClient.Get.UploadDocument(stream, "FromBuffer.dat");
+            var actualName = "Buffer.bin";
+            var doc = await VkClient.Get.UploadDocument(buffer, actualName);
 
-            Assert.Equal("FromBuffer.dat", doc.Title);
+            Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)buffer.Length, doc.Size);
         }
 
@@ -33,11 +45,11 @@ namespace VkApiTests
         public async Task UploadFromFileTest()
         {
             var path = "../../../TestData/CSR057069_0_3376112712.xlsx";
-            var name = "MyTable.xlsx";
+            var actualName = "Table.xlsx";
             using var stream = File.OpenRead(path);
-            var doc = await VkClient.Get.UploadDocument(stream, name);
+            var doc = await VkClient.Get.UploadDocument(stream, actualName);
 
-            Assert.Equal(name, doc.Title);
+            Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)stream.Length, doc.Size);
         }
 
@@ -45,11 +57,11 @@ namespace VkApiTests
         public async Task UploadFromLargeFileTest()
         {
             var path = "../../../TestData/LargeFile.7z";
-            var name = "MyLargeFile.7z";
+            var actualName = "MyLargeFile.7z";
             using var stream = File.OpenRead(path);
-            var doc = await VkClient.Get.UploadDocument(stream, name);
+            var doc = await VkClient.Get.UploadDocument(stream, actualName);
 
-            Assert.Equal(name, doc.Title);
+            Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)stream.Length, doc.Size);
         }
 
