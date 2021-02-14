@@ -1,13 +1,9 @@
 ﻿namespace VkApi.Wrappers
 
 open Newtonsoft.Json
+open VkApi
 
 
-[<NoEquality; NoComparison>]
-type internal Doc<'T> =
-    struct
-        val Document: 'T
-
-        [<JsonConstructor>]
-        new doc = { Document = doc }
-    end
+[<Struct; NoEquality; NoComparison>]
+type internal Doc [<JsonConstructor>] (doc: Document) =
+    member _.Document = doc

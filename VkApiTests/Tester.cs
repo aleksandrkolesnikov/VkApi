@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 
 namespace VkApiTests
@@ -22,12 +23,15 @@ namespace VkApiTests
         public async Task UploadFromMemoryStreamTest()
         {
             byte[] buffer = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            using var stream = new MemoryStream(buffer);
+            using var stream = new MemoryStream(buffer, writable: false);
             var actualName = "Stream.dat";
+            var actualHash = ComputeMD5Hash(stream);
+            stream.Position = 0;
             var doc = await VkClient.Get.UploadDocument(stream, actualName);
 
             Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)buffer.Length, doc.Size);
+            Assert.Equal(actualHash, doc.Hash);
         }
 
         [Fact(DisplayName = "Upload Document From Buffer")]
@@ -35,10 +39,12 @@ namespace VkApiTests
         {
             byte[] buffer = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             var actualName = "Buffer.bin";
+            var actualHash = ComputeMD5Hash(buffer);
             var doc = await VkClient.Get.UploadDocument(buffer, actualName);
 
             Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)buffer.Length, doc.Size);
+            Assert.Equal(actualHash, doc.Hash);
         }
 
         [Fact(DisplayName = "Upload Document From File")]
@@ -46,11 +52,18 @@ namespace VkApiTests
         {
             var path = "../../../TestData/CSR057069_0_3376112712.xlsx";
             var actualName = "Table.xlsx";
-            using var stream = File.OpenRead(path);
-            var doc = await VkClient.Get.UploadDocument(stream, actualName);
+            byte[] actualHash = null;
+            using (var stream = File.OpenRead(path))
+            {
+                actualHash = ComputeMD5Hash(stream);
+            }
+
+            using var fileStream = File.OpenRead(path);
+            var doc = await VkClient.Get.UploadDocument(fileStream, actualName);
 
             Assert.Equal(actualName, doc.Title);
-            Assert.Equal((ulong)stream.Length, doc.Size);
+            Assert.Equal((ulong)fileStream.Length, doc.Size);
+            Assert.Equal(actualHash, doc.Hash);
         }
 
         [Fact(DisplayName = "Upload Document From Large File")]
@@ -58,11 +71,18 @@ namespace VkApiTests
         {
             var path = "../../../TestData/LargeFile.7z";
             var actualName = "MyLargeFile.7z";
-            using var stream = File.OpenRead(path);
-            var doc = await VkClient.Get.UploadDocument(stream, actualName);
+            byte[] actualHash = null;
+            using (var stream = File.OpenRead(path))
+            {
+                actualHash = ComputeMD5Hash(stream);
+            }
+
+            using var fileStream = File.OpenRead(path);
+            var doc = await VkClient.Get.UploadDocument(fileStream, actualName);
 
             Assert.Equal(actualName, doc.Title);
-            Assert.Equal((ulong)stream.Length, doc.Size);
+            Assert.Equal((ulong)fileStream.Length, doc.Size);
+            Assert.Equal(actualHash, doc.Hash);
         }
 
         [Fact(DisplayName = "Remove Document")]
@@ -97,6 +117,20 @@ namespace VkApiTests
 
             var exception = Assert.Throws<AggregateException>(TestCode);
             Assert.Equal(typeof(TooManyRequestsPerSecondException), exception.InnerException.GetType());
+        }
+
+        private static byte[] ComputeMD5Hash(Stream stream)
+        {
+            using var md5 = MD5.Create();
+
+            return md5.ComputeHash(stream);
+        }
+
+        private static byte[] ComputeMD5Hash(byte[] buffer)
+        {
+            using var md5 = MD5.Create();
+
+            return md5.ComputeHash(buffer);
         }
     }
 }

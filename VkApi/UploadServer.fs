@@ -3,11 +3,6 @@
 open Newtonsoft.Json
 
 
-[<NoEquality; NoComparison>]
-type internal UploadServer =
-    struct
-        val Url: string
-
-        [<JsonConstructor>]
-        new upload_url = { Url = upload_url }
-    end
+[<Struct; NoEquality; NoComparison>]
+type internal UploadServer [<JsonConstructor>] (upload_url: string) =
+    member _.Url = upload_url

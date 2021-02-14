@@ -1,15 +1,11 @@
 ﻿namespace VkApi
 
+open System
 open Newtonsoft.Json
 
 
-[<NoEquality; NoComparison>]
-type internal UploadedFileInfo =
-    struct
-        val Info: string
-
-        [<JsonConstructor>]
-        new file = { Info = file }
-
-        member self.Title = self.Info.Split('|').[7]
-    end
+[<Struct; NoEquality; NoComparison>]
+type internal UploadedFileInfo [<JsonConstructor>] (file: string) =
+    member _.Info = file
+    member _.Title = (file.Split ('|')).[7]
+    member _.Hash = (file.Split ('|')).[8] |> Convert.FromHexString

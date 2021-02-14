@@ -3,38 +3,19 @@
 open Newtonsoft.Json
 
 
-type internal Error =
-    struct
-        val Error: InnerError
+[<Struct; NoEquality; NoComparison>]
+type internal RequestParam [<JsonConstructor>] (key: string, value: string) =
+    member _.Key = key
+    member _.Value = value
 
-        [<JsonConstructor>]
-        new error = { Error = error }
-    end
 
-and internal InnerError =
-    struct
-        val Code: int
-        val Message: string
-        val Params: RequestParam array
+[<Struct; NoEquality; NoComparison>]
+type internal InnerError [<JsonConstructor>] (error_code: int, error_msg: string, request_params: RequestParam array) =
+    member _.Code = error_code
+    member _.Message = error_msg
+    member _.Params = request_params
 
-        [<JsonConstructor>]
-        new (error_code, error_msg, request_params) =
-            {
-                Code = error_code
-                Message = error_msg
-                Params = request_params
-            }
-    end
 
-and internal RequestParam =
-    struct
-        val Key: string
-        val Value: string
-
-        [<JsonConstructor>]
-        new (key, value) =
-            {
-                Key = key
-                Value = value
-            }
-    end
+[<Struct; NoEquality; NoComparison>]
+type internal Error [<JsonConstructor>] (error: InnerError) =
+    member _.Error = error

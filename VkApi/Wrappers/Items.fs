@@ -3,11 +3,6 @@
 open Newtonsoft.Json
 
 
-[<NoEquality; NoComparison>]
-type internal Items<'T> =
-    struct
-        val Items: seq<'T>
-
-        [<JsonConstructor>]
-        new items = { Items = items }
-    end
+[<Struct; NoEquality; NoComparison>]
+type internal Items<'T> [<JsonConstructor>] (items: seq<'T>) =
+    member _.Items = items

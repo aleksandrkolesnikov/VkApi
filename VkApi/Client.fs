@@ -55,10 +55,14 @@ type Client (login, password) =
                 Post (response.Response.Url, name, source)
                 |> Request.perform<UploadedFileInfo>
 
+            let hash = response.Hash
+
             let! response =
                 Get $"https://api.vk.com/method/docs.save?access_token={info.AccessToken}&file={response.Info}&title={response.Title}&tags=&v={apiVersion}"
-                |> Request.perform<Response<Doc<Document>>>
+                |> Request.perform<Response<Doc>>
 
+            let mutable document = response.Response.Document
+            document.Hash <- hash
 
-            return response.Response.Document
+            return document
         }        
