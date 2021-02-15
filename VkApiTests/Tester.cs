@@ -14,7 +14,7 @@ namespace VkApiTests
         [Fact(DisplayName = "Get All Documents")]
         public async Task GetDocumentsTest()
         {
-            var docs = await VkClient.Get.GetDocuments();
+            var docs = await VkClient.Get.GetDocumentsAsync();
             
             Assert.NotEmpty(docs);
         }
@@ -27,7 +27,7 @@ namespace VkApiTests
             var actualName = "Stream.dat";
             var actualHash = ComputeMD5Hash(stream);
             stream.Position = 0;
-            var doc = await VkClient.Get.UploadDocument(stream, actualName);
+            var doc = await VkClient.Get.UploadDocumentAsync(stream, actualName);
 
             Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)buffer.Length, doc.Size);
@@ -40,7 +40,7 @@ namespace VkApiTests
             byte[] buffer = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             var actualName = "Buffer.bin";
             var actualHash = ComputeMD5Hash(buffer);
-            var doc = await VkClient.Get.UploadDocument(buffer, actualName);
+            var doc = await VkClient.Get.UploadDocumentAsync(buffer, actualName);
 
             Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)buffer.Length, doc.Size);
@@ -59,7 +59,7 @@ namespace VkApiTests
             }
 
             using var fileStream = File.OpenRead(path);
-            var doc = await VkClient.Get.UploadDocument(fileStream, actualName);
+            var doc = await VkClient.Get.UploadDocumentAsync(fileStream, actualName);
 
             Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)fileStream.Length, doc.Size);
@@ -78,7 +78,7 @@ namespace VkApiTests
             }
 
             using var fileStream = File.OpenRead(path);
-            var doc = await VkClient.Get.UploadDocument(fileStream, actualName);
+            var doc = await VkClient.Get.UploadDocumentAsync(fileStream, actualName);
 
             Assert.Equal(actualName, doc.Title);
             Assert.Equal((ulong)fileStream.Length, doc.Size);
@@ -92,9 +92,9 @@ namespace VkApiTests
             var name = "FileForDelete.txt";
             using var stream = File.OpenRead(path);
             var client = VkClient.Get;
-            var doc = await client.UploadDocument(stream, name);
-            await client.RemoveDocument(doc);
-            var docs = await client.GetDocuments();
+            var doc = await client.UploadDocumentAsync(stream, name);
+            await client.RemoveDocumentAsync(doc);
+            var docs = await client.GetDocumentsAsync();
 
             Assert.DoesNotContain(doc, docs);
         }
@@ -108,7 +108,7 @@ namespace VkApiTests
                 var client = VkClient.Get;
                 for (int i = 0; i < tasks.Length; ++i)
                 {
-                    var docs = client.GetDocuments();
+                    var docs = client.GetDocumentsAsync();
                     tasks[i] = docs;
                 }
 

@@ -39,11 +39,11 @@ module internal Request =
                 do! stream.WriteAsync (content, 0, content.Length)
             }
 
-    let private performGet<'Response> (url: string) =
+    let private performGetAsync<'Response> (url: string) =
         let request = WebRequest.CreateHttp url
         request.GetResponseAsync<'Response> ()
 
-    let private performPost<'Response> (url: string) filename (source: byte array) =
+    let private performPostAsync<'Response> (url: string) filename (source: byte array) =
         let boundary = Guid.NewGuid ()
         let body =
             let (|FileExtension|) (filename: string) = Path.GetExtension filename
@@ -73,11 +73,11 @@ module internal Request =
             return! request.GetResponseAsync<'Response> ()
         }
 
-    let perform<'Response> request =
+    let performAsync<'Response> request =
         task {
             let! response = match request with
-                            | Get url -> url |> performGet<'Response>
-                            | Post (url, filename, source) -> performPost<'Response> url filename source
+                            | Get url -> url |> performGetAsync<'Response>
+                            | Post (url, filename, source) -> performPostAsync<'Response> url filename source
 
             return response
         }
