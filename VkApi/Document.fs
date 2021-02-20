@@ -9,7 +9,7 @@ type Document [<JsonConstructor>] internal (id: uint64, owner_id: uint64, title:
         let unixEpoch = DateTime (1970, 1, 1, 0, 0, 0, 0)
         date |> float |> unixEpoch.AddSeconds
 
-    let mutable hash = Array.empty<byte>
+    let mutable hash: byte array = null
 
     interface IEquatable<Document> with
         member self.Equals document = (self.Id = document.Id) && (self.OwnerId = document.OwnerId)
