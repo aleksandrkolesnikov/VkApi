@@ -11,7 +11,7 @@ type HttpRequestBuilder () =
     member _.Run value =
         match value with
         | None -> raise <| ArgumentException ("Empty Request")
-        | Some request -> Request.SendAsync request
+        | Some request -> HttpRequest.SendAsync request
 
     member _.Yield _ = None
 

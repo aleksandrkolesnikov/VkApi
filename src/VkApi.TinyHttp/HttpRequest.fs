@@ -13,8 +13,8 @@ type HttpRequest =
     | Get of string
     | Post of string * Content
 
-[<RequireQualifiedAccess>]
-module internal Request =
+[<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+module internal HttpRequest =
 
     open System.Net.Http
 
