@@ -25,7 +25,7 @@ module internal HttpRequest =
         url
         |> client.GetStreamAsync
 
-    let private PostAsync (url:string) content =
+    let private PostAsync (url: string) content =
         task {
             let httpContent = new MultipartFormDataContent ()
             use innerContent = new StreamContent (content.Content)
