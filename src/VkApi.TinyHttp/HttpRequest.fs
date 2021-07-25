@@ -4,11 +4,13 @@ open System.IO
 open FSharp.Control.Tasks.V2
 
 
+[<NoComparison>]
 type Content = {
     Name: string
     Content: Stream
 }
 
+[<NoComparison>]
 type HttpRequest =
     | Get of string
     | Post of string * Content
