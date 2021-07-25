@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="UploadedFileIinfo.fs" />
+    <Compile Include="UploadServer.fs" />
+    <Compile Include="Items.fs" />
+    <Compile Include="Response.fs" />
+    <Compile Include="Error.fs" />
+    <Compile Include="AuthenticationInfo.fs" />
+    <Compile Include="Document.fs" />
+    <Compile Include="Doc.fs" />
+    <Compile Include="ResponseConverter.fs" />
+    <Compile Include="Client.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VkApi.TinyHttp\VkApi.TinyHttp.fsproj" />
+  </ItemGroup>
+
+</Project>
