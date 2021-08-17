@@ -3,6 +3,6 @@
 open Newtonsoft.Json
 
 
-[<Struct; NoEquality; NoComparison>]
+[<NoEquality; NoComparison>]
 type internal Doc [<JsonConstructor>] (doc: Document) =
     member _.Document = doc

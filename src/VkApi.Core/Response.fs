@@ -3,6 +3,6 @@
 open Newtonsoft.Json
 
 
-[<Struct; NoEquality; NoComparison>]
+[<NoEquality; NoComparison>]
 type internal Response<'T> [<JsonConstructor>] (response: 'T) =
     member _.Response = response

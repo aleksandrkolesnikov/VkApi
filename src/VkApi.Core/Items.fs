@@ -3,6 +3,6 @@
 open Newtonsoft.Json
 
 
-[<Struct; NoEquality; NoComparison>]
+[<NoEquality; NoComparison>]
 type internal Items<'T> [<JsonConstructor>] (items: seq<'T>) =
     member _.Items = items
