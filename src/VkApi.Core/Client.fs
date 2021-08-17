@@ -1,13 +1,14 @@
 ﻿namespace VkApi.Core
 
+open System.Threading.Tasks
 open VkApi.TinyHttp
 open FSharp.Control.Tasks.V2
 
 
-type Client (login, password) =
+type Client private (info) =
     let apiVersion = "5.126"
 
-    let authInfo =
+    static member Create (login, password): Task<Client> =
         task {
             let clientId = 2274003
             let clientSecret = "hHbZxrka2uZ6jB1inYsH"
@@ -16,12 +17,14 @@ type Client (login, password) =
                     GET $"https://oauth.vk.com/token?grant_type=password&client_id={clientId}&client_secret={clientSecret}&username=%s{login}&password=%s{password}"
                 }
 
-            return! ResponseConverter.ConvertAsync<AuthenticationInfo> stream
+            let! info = ResponseConverter.ConvertAsync<AuthenticationInfo> stream
+
+            return Client (info)
         }
+
 
     member _.GetDocumentsAsync () =
         task {
-            let! info = authInfo
             let! stream =
                 http {
                     GET $"https://api.vk.com/method/docs.get?access_token={info.AccessToken}&v={apiVersion}"
@@ -32,7 +35,7 @@ type Client (login, password) =
         }
 
     member _.UploadDocumentAsync (name, stream) =
-        let GetUploadServerAsync (info: AuthenticationInfo) =
+        let GetUploadServerAsync () =
             task {
                 let! stream =
                     http {
@@ -70,15 +73,13 @@ type Client (login, password) =
             }
 
         task {
-            let! info = authInfo
-            let! serverInfo = GetUploadServerAsync info
+            let! serverInfo = GetUploadServerAsync ()
             let! fileInfo = UploadDocumentAsync serverInfo
             return! SaveDocumentAsync info fileInfo
         }
 
     member _.RemoveDocumentAsync (doc: Document) =
         task {
-            let! info = authInfo
             let! stream =
                 http {
                     GET $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id={doc.Id}&v={apiVersion}"
