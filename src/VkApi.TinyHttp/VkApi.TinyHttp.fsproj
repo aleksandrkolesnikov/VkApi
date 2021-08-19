@@ -12,8 +12,4 @@
     <Compile Include="HttpRequestBuilder.fs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
-  </ItemGroup>
-
 </Project>

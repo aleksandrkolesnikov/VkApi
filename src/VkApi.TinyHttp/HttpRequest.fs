@@ -1,7 +1,6 @@
 ﻿namespace VkApi.TinyHttp
 
 open System.IO
-open FSharp.Control.Tasks.V2
 
 
 [<NoComparison>]
@@ -18,28 +17,56 @@ type HttpRequest =
 [<RequireQualifiedAccess; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
 module internal HttpRequest =
 
-    open System.Net.Http
+    open System
+    open System.Text
+    open System.Net
 
 
-    let private client = new HttpClient ()
+    let private AsyncGet (url: string)  =
+        async {
+            let request = WebRequest.CreateHttp url
+            let! response = request.AsyncGetResponse ()
 
-    let private GetAsync (url: string) =
-        url
-        |> client.GetStreamAsync
-
-    let private PostAsync (url: string) content =
-        task {
-            let httpContent = new MultipartFormDataContent ()
-            use innerContent = new StreamContent (content.Content)
-            httpContent.Add (innerContent, "file", content.Name)
-            let! response =
-                (url, httpContent)
-                |> client.PostAsync
-
-            return! response.Content.ReadAsStreamAsync ()
+            return response.GetResponseStream ()
         }
 
-    let SendAsync request =
+    let private AsyncPost (url: string) (content: Content) =
+        let (|FileExtension|) (filename: string) = Path.GetExtension filename
+
+        async {
+            let boundary = Guid.NewGuid ()
+            let contentType =
+                match content.Name with
+                | FileExtension ".jpg"
+                | FileExtension ".jpeg" -> "image/jpeg"
+                | FileExtension ".txt" -> "text/plain"
+                | _ -> "application/octet-stream"
+
+            let header =
+                $"--{boundary}\r\nContent-Disposition: form-data; name=file; filename=\"{content.Name}\"\r\nContent-Type:{contentType}\r\n\r\n"
+                |> Encoding.UTF8.GetBytes
+
+            let footer =
+                $"\r\n--{boundary}--\r\n"
+                |> Encoding.UTF8.GetBytes
+
+            let count = content.Content.Length |> int
+            let! data = content.Content.AsyncRead count
+            let body =
+                seq { header; data; footer }
+                |> Array.concat
+
+            let request = WebRequest.Create url
+            request.Method <- "POST"
+            request.ContentType <- $"multipart/form-data; boundary={boundary}"
+            let! stream = Async.FromBeginEnd (request.BeginGetRequestStream, request.EndGetRequestStream)
+            do! stream.AsyncWrite (body, 0, body.Length)
+            let! response = request.AsyncGetResponse ()
+
+            return response.GetResponseStream ()
+        }
+
+    let AsyncMake request =
         match request with
-        | Get url -> url |> GetAsync
-        | Post (url, content) -> PostAsync url content
+        | Get url -> url |> AsyncGet
+        | Post (url, content) -> AsyncPost url content

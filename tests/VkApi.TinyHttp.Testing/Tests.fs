@@ -33,8 +33,9 @@ let ``Get Response`` () =
         http {
             GET "https://httpbin.org/get"
         }
+        |> Async.RunSynchronously
 
-    use reader = new StreamReader (response.Result)
+    use reader = new StreamReader (response)
     let data = reader.ReadToEnd ()
     let response = JsonConvert.DeserializeObject<Response> data
 
@@ -53,8 +54,9 @@ let ``Post Request`` () =
                 Name = "Test.txt"
             }
         }
+        |> Async.RunSynchronously
 
-    use reader = new StreamReader (stream.Result)
+    use reader = new StreamReader (stream)
     let data = reader.ReadToEnd ()
     let response = JsonConvert.DeserializeObject<Response> data
 
@@ -72,8 +74,9 @@ let ``Post Request (Content First)`` () =
             }
             POST "https://httpbin.org/post"
         }
+        |> Async.RunSynchronously
 
-    use reader = new StreamReader (stream.Result)
+    use reader = new StreamReader (stream)
     let data = reader.ReadToEnd ()
     let response = JsonConvert.DeserializeObject<Response> data
 
@@ -93,8 +96,9 @@ let ``Throw Exception If Change From Post to Get`` () =
                 POST "https://httpbin.org/post"
                 GET "https://httpbin.org/get"
             }
+            |> Async.RunSynchronously
 
-        use reader = new StreamReader (stream.Result)
+        use reader = new StreamReader (stream)
         reader.ReadToEnd ()
         |> JsonConvert.DeserializeObject<Response>
         |> ignore
