@@ -44,8 +44,7 @@ let ``Get Response`` () =
 
 [<Fact>]
 let ``Post Request`` () =
-    use content = new MemoryStream (Encoding.UTF8.GetBytes text)
-
+    let content = Encoding.UTF8.GetBytes text
     let stream =
         http {
             POST "https://httpbin.org/post"
@@ -64,8 +63,7 @@ let ``Post Request`` () =
 
 [<Fact>]
 let ``Post Request (Content First)`` () =
-    use content = new MemoryStream (Encoding.UTF8.GetBytes text)
-
+    let content = Encoding.UTF8.GetBytes text
     let stream =
         http {
             Content {
@@ -83,9 +81,31 @@ let ``Post Request (Content First)`` () =
     Assert.Equal (text, response.Files.File)
 
 [<Fact>]
+let ``Repeat Post Request`` () =
+    let content = Encoding.UTF8.GetBytes text
+    let request =
+        http {
+            POST "https://httpbin.org/post"
+            Content { Content = content; Name = "Sample.data" }
+        }
+
+    let stream1 = request |> Async.RunSynchronously
+    let stream2 = request |> Async.RunSynchronously
+
+    use reader = new StreamReader (stream1)
+    let data = reader.ReadToEnd ()
+    let response1 = JsonConvert.DeserializeObject<Response> data
+
+    use reader = new StreamReader (stream2)
+    let data = reader.ReadToEnd ()
+    let response2 = JsonConvert.DeserializeObject<Response> data
+
+    Assert.Equal (response1, response2)
+
+[<Fact>]
 let ``Throw Exception If Change From Post to Get`` () =
     let TestCode () =
-        use content = new MemoryStream (Encoding.UTF8.GetBytes text)
+        let content = Encoding.UTF8.GetBytes text
 
         let stream =
             http {

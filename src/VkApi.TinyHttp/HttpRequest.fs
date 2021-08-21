@@ -1,12 +1,10 @@
 ﻿namespace VkApi.TinyHttp
 
-open System.IO
-
 
 [<NoComparison>]
 type Content = {
     Name: string
-    Content: Stream
+    Content: byte array
 }
 
 [<NoComparison>]
@@ -20,6 +18,7 @@ module internal HttpRequest =
     open System
     open System.Text
     open System.Net
+    open System.IO
 
 
     let private AsyncGet (url: string)  =
@@ -50,10 +49,8 @@ module internal HttpRequest =
                 $"\r\n--{boundary}--\r\n"
                 |> Encoding.UTF8.GetBytes
 
-            let count = content.Content.Length |> int
-            let! data = content.Content.AsyncRead count
             let body =
-                seq { header; data; footer }
+                seq { header; content.Content; footer }
                 |> Array.concat
 
             let request = WebRequest.Create url
