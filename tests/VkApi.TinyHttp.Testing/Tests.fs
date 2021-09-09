@@ -29,23 +29,23 @@ let text = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do ei
 
 [<Fact>]
 let ``Get Response`` () =
-    use response =
+    let response =
         http {
             GET "https://httpbin.org/get"
         }
 
-    use reader = new StreamReader (response.Result)
-    let data = reader.ReadToEnd ()
-    let response = JsonConvert.DeserializeObject<Response> data
+    let obj =
+        response.Result
+        |> JsonConvert.DeserializeObject<Response>
 
-    Assert.Null response.Files
-    Assert.Equal ("https://httpbin.org/get", response.Url)
+    Assert.Null obj.Files
+    Assert.Equal ("https://httpbin.org/get", obj.Url)
 
 [<Fact>]
 let ``Post Request`` () =
-    use content = new MemoryStream (Encoding.UTF8.GetBytes text)
+    let content = Encoding.UTF8.GetBytes text
 
-    let stream =
+    let response =
         http {
             POST "https://httpbin.org/post"
             Content {
@@ -54,17 +54,17 @@ let ``Post Request`` () =
             }
         }
 
-    use reader = new StreamReader (stream.Result)
-    let data = reader.ReadToEnd ()
-    let response = JsonConvert.DeserializeObject<Response> data
+    let obj =
+        response.Result
+        |> JsonConvert.DeserializeObject<Response>
 
-    Assert.Equal (text, response.Files.File)
+    Assert.Equal (text, obj.Files.File)
 
 [<Fact>]
 let ``Post Request (Content First)`` () =
-    use content = new MemoryStream (Encoding.UTF8.GetBytes text)
+    let content = Encoding.UTF8.GetBytes text
 
-    let stream =
+    let response =
         http {
             Content {
                 Content = content;
@@ -73,18 +73,18 @@ let ``Post Request (Content First)`` () =
             POST "https://httpbin.org/post"
         }
 
-    use reader = new StreamReader (stream.Result)
-    let data = reader.ReadToEnd ()
-    let response = JsonConvert.DeserializeObject<Response> data
+    let obj =
+        response.Result
+        |> JsonConvert.DeserializeObject<Response>
 
-    Assert.Equal (text, response.Files.File)
+    Assert.Equal (text, obj.Files.File)
 
 [<Fact>]
 let ``Throw Exception If Change From Post to Get`` () =
     let TestCode () =
-        use content = new MemoryStream (Encoding.UTF8.GetBytes text)
+        let content = Encoding.UTF8.GetBytes text
 
-        let stream =
+        let response =
             http {
                 Content {
                     Content = content;
@@ -94,8 +94,7 @@ let ``Throw Exception If Change From Post to Get`` () =
                 GET "https://httpbin.org/get"
             }
 
-        use reader = new StreamReader (stream.Result)
-        reader.ReadToEnd ()
+        response.Result
         |> JsonConvert.DeserializeObject<Response>
         |> ignore
 

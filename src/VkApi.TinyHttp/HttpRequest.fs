@@ -1,13 +1,12 @@
 ﻿namespace VkApi.TinyHttp
 
-open System.IO
 open FSharp.Control.Tasks.V2
 
 
 [<NoComparison>]
 type Content = {
     Name: string
-    Content: Stream
+    Content: byte array
 }
 
 [<NoComparison>]
@@ -25,18 +24,18 @@ module internal HttpRequest =
 
     let private GetAsync (url: string) =
         url
-        |> client.GetStreamAsync
+        |> client.GetStringAsync
 
     let private PostAsync (url: string) content =
         task {
             let httpContent = new MultipartFormDataContent ()
-            use innerContent = new StreamContent (content.Content)
+            use innerContent = new ByteArrayContent (content.Content)
             httpContent.Add (innerContent, "file", content.Name)
             let! response =
                 (url, httpContent)
                 |> client.PostAsync
 
-            return! response.Content.ReadAsStreamAsync ()
+            return! response.Content.ReadAsStringAsync ()
         }
 
     let SendAsync request =
