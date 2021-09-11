@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="RetryBuilder.fs" />
     <Compile Include="UploadedFileIinfo.fs" />
     <Compile Include="UploadServer.fs" />
     <Compile Include="Items.fs" />
@@ -20,7 +21,7 @@
     <Compile Include="AuthenticationInfo.fs" />
     <Compile Include="Document.fs" />
     <Compile Include="Doc.fs" />
-    <Compile Include="ResponseConverter.fs" />
+    <Compile Include="ResponseParser.fs" />
     <Compile Include="Client.fs" />
   </ItemGroup>
 

@@ -42,13 +42,11 @@ namespace VkApi.Core.Testing
         public async Task TestUploadDoc()
         {
             var name = "simple-text.txt";
-            var data = "Hello World!. This is simple text!";
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
+            var data = Encoding.UTF8.GetBytes("Hello World!. This is simple text!");
             using var md5 = MD5.Create();
-            var expectedHash = await md5.ComputeHashAsync(stream);
-            stream.Position = 0;
+            var expectedHash = md5.ComputeHash(data);
 
-            var doc = await sut.UploadDocumentAsync(name, stream);
+            var doc = await sut.UploadDocumentAsync(name, data);
 
             Assert.Equal(name, doc.Title);
             Assert.Equal(expectedHash, doc.Hash);
@@ -58,19 +56,18 @@ namespace VkApi.Core.Testing
         public async Task TestRemoveDoc()
         {
             var name = "simple-text.txt";
-            var data = "Hello World!. This is simple text!";
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
-            var doc = await sut.UploadDocumentAsync(name, stream);
+            var data = Encoding.UTF8.GetBytes("Hello World!. This is simple text!");
+            var doc = await sut.UploadDocumentAsync(name, data);
 
             await sut.RemoveDocumentAsync(doc);
 
             Assert.True(true);
         }
 
-        [Fact(DisplayName = "Make Multiple Requests", Skip = "Temporary skipped")]
+        [Fact(DisplayName = "Make Multiple Requests")]
         public void TestMultipleRequests()
         {
-            var tasks = new Task<IEnumerable<Document>>[30];
+            var tasks = new Task<IEnumerable<Document>>[100];
             for (int i = 0; i < tasks.Length; ++i)
             {
                 var docs = sut.GetDocumentsAsync();
