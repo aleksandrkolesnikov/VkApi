@@ -1,7 +1,6 @@
 ﻿namespace VkApi.Core
 
 open System.Threading.Tasks
-open FSharp.Control.Tasks.V2
 
 
 type RetryBuilder (attempts) =

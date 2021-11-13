@@ -1,7 +1,5 @@
 ﻿namespace VkApi.TinyHttp
 
-open FSharp.Control.Tasks.V2
-
 
 [<NoComparison>]
 type Content = {

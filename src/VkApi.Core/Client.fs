@@ -2,7 +2,6 @@
 
 open System.Threading.Tasks
 open VkApi.TinyHttp
-open FSharp.Control.Tasks.V2
 
 
 type Client private (info) =
@@ -35,12 +34,11 @@ type Client private (info) =
                 return response.Response.Items
             }
 
-        task {
-            return!
-                retry 20 {
-                    let! docs = TryGetDocuments
-                    return docs
-                }
+        retry 20 {
+            let! docs = TryGetDocuments
+
+            // TODO: implement return! docs
+            return docs;
         }
 
     member _.UploadDocumentAsync (name, stream) =
@@ -82,18 +80,40 @@ type Client private (info) =
             }
 
         task {
-            let! serverInfo = GetUploadServerAsync ()
-            let! fileInfo = UploadDocumentAsync serverInfo
-            return! SaveDocumentAsync info fileInfo
+            let! serverInfo =
+                retry 20 {
+                    let! info = GetUploadServerAsync
+                    return info
+                }
+
+            let! fileInfo =
+                retry 20 {
+                    let! info = fun () -> UploadDocumentAsync serverInfo
+                    return info
+                }
+
+            let! doc =
+                retry 20 {
+                    let! doc = fun () -> SaveDocumentAsync info fileInfo
+                    return doc
+                }
+
+            return doc
         }
 
     member _.RemoveDocumentAsync (doc: Document) =
-        task {
-            let! response =
-                http {
-                    GET $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id={doc.Id}&v={apiVersion}"
-                }
+        let TryRemoveDocumentAsync () =
+            task {
+                let! response =
+                    http {
+                        GET $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id={doc.Id}&v={apiVersion}"
+                    }
 
-            let result = ResponseParser.TryParse<Response<int>> response
-            if result.Response <> 1 then failwith "Test"
+                let result = ResponseParser.TryParse<Response<int>> response
+                if result.Response <> 1 then failwith "Test"
+            }
+
+        retry 20 {
+            let! tmp = TryRemoveDocumentAsync
+            return tmp
         }

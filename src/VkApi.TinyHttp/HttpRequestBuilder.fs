@@ -24,7 +24,8 @@ type HttpRequestBuilder () =
             match request with
             | Get _ ->
                 uri |> MakeGet
-            | Post _ -> raise <| ArgumentException ("Could not change Get Reqeust to Post Reqeust")
+            | Post _ ->
+                raise <| ArgumentException ("Could not change Get Reqeust to Post Reqeust")
 
     [<CustomOperation "POST">]
     member _.Post (value, uri) =
@@ -52,6 +53,6 @@ type HttpRequestBuilder () =
                 (uri, content)
                 |> MakePost
 
-[<AutoOpen>]
-module HttpRequestBuilderModule =
+[<AutoOpen; CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+module HttpRequestBuilder =
     let http = HttpRequestBuilder ()
