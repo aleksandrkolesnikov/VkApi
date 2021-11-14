@@ -16,7 +16,9 @@ type Client private (info) =
                     GET $"https://oauth.vk.com/token?grant_type=password&client_id={clientId}&client_secret={clientSecret}&username=%s{login}&password=%s{password}"
                 }
 
-            let info = ResponseParser.TryParse<AuthenticationInfo> response
+            let info = match ResponseParser.Parse<AuthenticationInfo> response with
+                       | Error error -> Exception.RaiseSpecificException error.Error
+                       | Ok response -> response
 
             return Client (info)
         }
@@ -25,13 +27,15 @@ type Client private (info) =
     member _.GetDocumentsAsync () =
         let TryGetDocuments () =
             task {
-                let! text =
+                let! response =
                     http {
                         GET $"https://api.vk.com/method/docs.get?access_token={info.AccessToken}&v={apiVersion}"
                     }
 
-                let response = ResponseParser.TryParse<Response<Items<Document>>> text
-                return response.Response.Items
+                return
+                    match ResponseParser.Parse<Response<Items<Document>>> response with
+                    | Error error -> Exception.RaiseSpecificException error.Error
+                    | Ok resp -> resp.Response.Items
             }
 
         retry 20 {
@@ -49,8 +53,10 @@ type Client private (info) =
                         GET $"https://api.vk.com/method/docs.getUploadServer?access_token={info.AccessToken}&v={apiVersion}"
                     }
 
-                let response = ResponseParser.TryParse<Response<UploadServer>> response
-                return response.Response
+                return
+                    match ResponseParser.Parse<Response<UploadServer>> response with
+                    | Error error -> Exception.RaiseSpecificException error.Error
+                    | Ok response -> response.Response
             }
 
         let UploadDocumentAsync (serverInfo: UploadServer) =
@@ -61,8 +67,10 @@ type Client private (info) =
                         Content { Name = name; Content = stream }
                     }
 
-                let response = ResponseParser.TryParse<UploadedFileInfo> response
-                return response
+                return
+                    match ResponseParser.Parse<UploadedFileInfo> response with
+                    | Error error -> Exception.RaiseSpecificException error.Error
+                    | Ok response -> response
             }
 
         let SaveDocumentAsync (info: AuthenticationInfo) (fileInfo: UploadedFileInfo) =
@@ -72,11 +80,14 @@ type Client private (info) =
                         GET $"https://api.vk.com/method/docs.save?access_token={info.AccessToken}&file={fileInfo.Info}&title={fileInfo.Title}&tags=&v={apiVersion}"
                     }
 
-                let response = ResponseParser.TryParse<Response<Doc>> response;
-                let mutable document = response.Response.Document
+                let mutable document =
+                    match ResponseParser.Parse<Response<Doc>> response with
+                    | Error error -> Exception.RaiseSpecificException error.Error
+                    | Ok response -> response.Response.Document
+
                 document.Hash <- fileInfo.Hash
 
-                return document                
+                return document
             }
 
         task {
@@ -109,8 +120,12 @@ type Client private (info) =
                         GET $"https://api.vk.com/method/docs.delete?access_token={info.AccessToken}&owner_id={doc.OwnerId}&doc_id={doc.Id}&v={apiVersion}"
                     }
 
-                let result = ResponseParser.TryParse<Response<int>> response
-                if result.Response <> 1 then failwith "Test"
+                let result =
+                    match ResponseParser.Parse<Response<int>> response with
+                    | Error error -> Exception.RaiseSpecificException error.Error
+                    | Ok response -> response.Response
+
+                if result <> 1 then failwith "Test"
             }
 
         retry 20 {
