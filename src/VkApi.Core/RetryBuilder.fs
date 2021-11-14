@@ -11,12 +11,15 @@ type RetryBuilder (attempts) =
                 let! y = rest x
                 return y
 
-            with error ->
-                if n = 0 then
-                    return raise (new System.Exception (""))
-                else
-                    do! Task.Delay 1000
-                    return! Retry (n - 1) f rest
+            with
+                | :? TooManyRequestsException as ex ->
+                    if n = 0 then
+                        return raise ex
+                    else
+                        do! Task.Delay 1000
+                        return! Retry (n - 1) f rest
+                | _ as ex ->
+                    return raise ex
         }
 
     member _.Bind (f: unit -> Task<_>, rest: 'T -> Task<_>) =

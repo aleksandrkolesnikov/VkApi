@@ -12,13 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="RetryBuilder.fs" />
     <Compile Include="UploadedFileIinfo.fs" />
     <Compile Include="UploadServer.fs" />
     <Compile Include="Items.fs" />
     <Compile Include="Response.fs" />
     <Compile Include="Error.fs" />
     <Compile Include="Exception.fs" />
+    <Compile Include="RetryBuilder.fs" />
     <Compile Include="AuthenticationInfo.fs" />
     <Compile Include="Document.fs" />
     <Compile Include="Doc.fs" />
