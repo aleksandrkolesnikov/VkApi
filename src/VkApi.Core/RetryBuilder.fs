@@ -25,7 +25,9 @@ type RetryBuilder (attempts) =
     member _.Bind (f: unit -> Task<_>, rest: 'T -> Task<_>) =
         Retry (attempts - 1) f rest
 
-    member _.Return x = task { return x }
+    member _.Return value = task { return value }
+    
+    member _.Zero () = task { () }
 
 
 [<AutoOpen>]
