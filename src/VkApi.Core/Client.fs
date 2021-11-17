@@ -129,6 +129,5 @@ type Client private (info) =
             }
 
         retry 20 {
-            let! _ = TryRemoveDocumentAsync
-            ()
+            do! TryRemoveDocumentAsync
         }
