@@ -39,10 +39,7 @@ type Client private (info) =
             }
 
         retry 20 {
-            let! docs = TryGetDocuments
-
-            // TODO: implement return! docs
-            return docs;
+            return! TryGetDocuments
         }
 
     member _.UploadDocumentAsync (name, stream) =
@@ -93,20 +90,17 @@ type Client private (info) =
         task {
             let! serverInfo =
                 retry 20 {
-                    let! info = GetUploadServerAsync
-                    return info
+                    return! GetUploadServerAsync
                 }
 
             let! fileInfo =
                 retry 20 {
-                    let! info = fun () -> UploadDocumentAsync serverInfo
-                    return info
+                    return! fun () -> UploadDocumentAsync serverInfo
                 }
 
             let! doc =
                 retry 20 {
-                    let! doc = fun () -> SaveDocumentAsync info fileInfo
-                    return doc
+                    return! fun () -> SaveDocumentAsync info fileInfo
                 }
 
             return doc
